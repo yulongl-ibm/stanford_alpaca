@@ -312,12 +312,12 @@ def main():
     else:
         model_args, data_args, training_args, senqnn_args = parser.parse_args_into_dataclasses()
 
-    do_eval_only = (
-        senqnn_args.eval_only_ckpt_dir
-        or (not training_args.do_train
-            and not senqnn_args.do_llm_ptq
-            and not senqnn_args.do_llm_dq)
-    )
+    # do_eval_only = (
+    #     senqnn_args.eval_only_ckpt_dir
+    #     or (not training_args.do_train
+    #         and not senqnn_args.do_llm_ptq
+    #         and not senqnn_args.do_llm_dq)
+    # )
     # if senqnn_args.QKVsync and do_eval_only:
     #     raise ValueError("QKVsync flag is not compatible with evaluation only")
 
