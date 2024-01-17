@@ -236,12 +236,17 @@ def train():
     model_args, data_args, training_args, sq_args = parser.parse_args_into_dataclasses()
     training_args.report_to=[]
 
-
+    training_args.deepspeed = None
+    training_args.hf_deepspeed_config = None
     model = transformers.AutoModelForCausalLM.from_pretrained(
         model_args.model_name_or_path,
         cache_dir=training_args.cache_dir,
         torchscript=True
     )
+    # model.to(torch.device('cuda'))
+
+    model_args, data_args, training_args, sq_args = parser.parse_args_into_dataclasses()
+    training_args.report_to=[]
 
     tokenizer = transformers.LlamaTokenizer.from_pretrained(
         model_args.model_name_or_path,
@@ -270,13 +275,17 @@ def train():
         teacher_model = copy.deepcopy(model)
         checkpoint = torch.load(sq_args.teacher_model)
         teacher_model.load_state_dict(checkpoint)
-        teacher_model.eval()
+        # teacher_model.eval()
         del checkpoint
     else:
         teacher_model = None
 
+    model.to(torch.device('cuda'))
+    # if teacher_model:
+    #     teacher_model.to(torch.device('cuda'))
+
     if sq_args.lora_initialization_checkpoint:
-        lora_initialization_checkpoint = torch.load(sq_args.lora_initialization_checkpoint)
+        lora_initialization_checkpoint = torch.load(sq_args.lora_initialization_checkpoint, map_location='cpu')
     else:
         lora_initialization_checkpoint = None
 
@@ -341,7 +350,7 @@ def train():
             # record clip_vals
             if self.tb_writer:
                 for k, v in kwargs.get('model').named_parameters():
-                    if 'clip_val' in k: self.tb_writer.add_scalar(k, v, state.global_step)
+                    if 'clip_val' in k: self.tb_writer.add_scalar(k, v.item(), state.global_step)
                 # YL: Hack to add pact_a_lr to tb
                 # self.tb_writer.add_scalar('pact_a_lr', kwargs.get('optimizer').param_groups[2]['lr'], state.global_step) 
             return super().on_log(args, state, control, logs, **kwargs)
