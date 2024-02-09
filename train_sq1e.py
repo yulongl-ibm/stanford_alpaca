@@ -281,8 +281,6 @@ def train():
         teacher_model = None
 
     model.to(torch.device('cuda'))
-    # if teacher_model:
-    #     teacher_model.to(torch.device('cuda'))
 
     if sq_args.lora_initialization_checkpoint:
         lora_initialization_checkpoint = torch.load(sq_args.lora_initialization_checkpoint, map_location='cpu')
